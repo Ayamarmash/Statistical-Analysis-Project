@@ -1,0 +1,59 @@
+Function 1 :
+
+def compute_trip_duration(df):
+    result_df = df.copy()
+    pickup_datetime = pd.to_datetime(result_df['pickup_datetime'])
+    dropoff_datetime = pd.to_datetime(result_df['dropoff_datetime'])
+    result_df['trip duration'] = (dropoff_datetime -  pickup_datetime).dt.total_seconds()
+    return result_df
+
+
+
+
+Function 2 :
+
+def add_hour_and_day(df):
+    result_df = df.copy()
+    pickup_datetime = pd.to_datetime(result_df['pickup_datetime'])
+    days_mapping = {
+    0: 'Monday',
+    1: 'Tuesday',
+    2: 'Wednesday',
+    3: 'Thursday',
+    4: 'Friday',
+    5: 'Saturday',
+    6: 'Sunday'
+    }
+    result_df['hour'] = pickup_datetime.dt.hour
+    result_df['day of week'] = pickup_datetime.dt.dayofweek.map(days_mapping)
+    return result_df
+
+
+
+
+Function 3 :
+
+def predictions(df):
+    data = df.groupby(['pulocationid', 'dolocationid', 'day of week', 'hour'])
+    mean_duration = data['trip duration'].mean()
+    standard_err = data['trip duration'].sem()
+    z_score = t.ppf(0.95, len(data) - 1)
+    margin_of_error = standard_err * z_score
+    predictions = pd.DataFrame({
+        'mean trip duration': mean_duration,
+        'margin of error': margin_of_error
+    })
+    predictions['margin of error'].fillna(0.0, inplace=True)
+    return predictions
+
+
+
+
+Function 4 :
+
+def generate_predictions():
+    df = pd.read_csv("https://data.cityofnewyork.us/resource/4p5c-cbgn.csv")
+    df = compute_trip_duration(df)
+    df = add_hour_and_day(df)
+    df = predictions(df)
+    return df
